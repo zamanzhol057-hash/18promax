@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Құпия сәлемдеме 🎁</title>
+  <!-- Tailwind CSS және мерекелік конфетти кітапханасы -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at 50% 0%, #1a1c29 0%, #07080c 75%, #020204 100%);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      padding: 16px;
+      perspective: 1200px;
+    }
+
+    /* Фондағы жұмсақ Apple жарығы */
+    .ambient-glow {
+      position: fixed;
+      top: -15%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 650px;
+      height: 420px;
+      background: radial-gradient(circle, rgba(217, 175, 115, 0.16) 0%, rgba(244, 63, 94, 0.1) 45%, transparent 70%);
+      filter: blur(65px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Қалқып жүретін ұсақ бөлшектер */
+    .particle {
+      position: fixed;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(253, 230, 138, 0.7), transparent);
+      pointer-events: none;
+      animation: floatParticle 9s infinite ease-in-out;
+      z-index: 0;
+    }
+
+    @keyframes floatParticle {
+      0%, 100% { transform: translateY(0) translateX(0); opacity: 0.25; }
+      50% { transform: translateY(-35px) translateX(15px); opacity: 0.7; }
+    }
+
+    @keyframes pulseSeal {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.55); }
+      50% { transform: scale(1.09); box-shadow: 0 0 28px 8px rgba(244, 63, 94, 0.25); }
+    }
+
+    @keyframes floatPhone {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-9px); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.92); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes shakeNo {
+      0%, 100% { transform: translateX(0) scale(var(--no-scale, 1)); }
+      20% { transform: translateX(-9px) rotate(-3deg) scale(var(--no-scale, 1)); }
+      40% { transform: translateX(9px) rotate(3deg) scale(var(--no-scale, 1)); }
+      60% { transform: translateX(-5px) rotate(-2deg) scale(var(--no-scale, 1)); }
+      80% { transform: translateX(5px) rotate(2deg) scale(var(--no-scale, 1)); }
+    }
+
+    @keyframes shimmerHolo {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .animate-fade-in { animation: fadeIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+    .animate-pop-in { animation: popIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+    .animate-shake { animation: shakeNo 0.42s ease; }
+
+    /* --- 1-ЭКРАН: АШЫҚ ХАТ (КОНВЕРТ) --- */
+    .envelope-wrapper {
+      position: relative;
+      width: 315px;
+      height: 205px;
+      background: linear-gradient(145deg, #1b1d26 0%, #0f1016 100%);
+      border: 1px solid rgba(251, 191, 36, 0.35);
+      border-radius: 24px;
+      box-shadow:
+        0 25px 60px rgba(0, 0, 0, 0.75),
+        inset 0 1px 1px rgba(255, 255, 255, 0.16);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.25s ease-out, box-shadow 0.35s ease;
+      overflow: hidden;
+      transform-style: preserve-3d;
+    }
+
+    .envelope-wrapper:hover {
+      box-shadow:
+        0 30px 75px rgba(244, 63, 94, 0.28),
+        inset 0 1px 1px rgba(255, 255, 255, 0.25);
+    }
+
+    .envelope-flap {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: 0;
+      border-left: 158px solid transparent;
+      border-right: 158px solid transparent;
+      border-top: 114px solid rgba(251, 191, 36, 0.13);
+      transform-origin: top;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1;
+    }
+
+    .envelope-wrapper.open .envelope-flap {
+      transform: rotateX(180deg);
+    }
+
+    .seal {
+      width: 72px;
+      height: 72px;
+      background: radial-gradient(circle at 30% 30%, #fb7185 0%, #e11d48 65%, #9f1239 100%);
+      color: #ffffff;
+      border: 2px solid rgba(255, 255, 255, 0.45);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      z-index: 2;
+      animation: pulseSeal 2.2s infinite;
+    }
+
+    /* --- 2-ЭКРАН: IPHONE 18 PRO 3D-РЕНДЕРІ --- */
+    .phone-3d-stage {
+      perspective: 1100px;
+      cursor: grab;
+    }
+
+    .phone-3d-card {
+      transition: transform 0.15s ease-out;
+      transform-style: preserve-3d;
+      animation: floatPhone 4.5s ease-in-out infinite;
+    }
+
+    /* Бірегей iPhone 18 Pro Desert Titanium корпусы */
+    .iphone-18-chassis {
+      position: relative;
+      width: 214px;
+      height: 396px;
+      border-radius: 44px;
+      padding: 4px;
+      background: linear-gradient(135deg, #e5d5c0 0%, #9c8b77 28%, #54493d 65%, #d6c4ae 100%);
+      box-shadow:
+        0 30px 65px -10px rgba(0, 0, 0, 0.88),
+        0 0 40px rgba(214, 196, 174, 0.22),
+        inset 0 0 4px rgba(255, 255, 255, 0.75);
+    }
+
+    /* Бүйірлік титан түймелер */
+    .side-btn-left-1, .side-btn-left-2, .side-btn-left-3, .side-btn-right {
+      position: absolute;
+      background: linear-gradient(180deg, #d6c4ae, #7c6d5c);
+      border-radius: 3px;
+    }
+    .side-btn-left-1 { left: -3px; top: 72px; width: 3px; height: 22px; }
+    .side-btn-left-2 { left: -3px; top: 110px; width: 3px; height: 38px; }
+    .side-btn-left-3 { left: -3px; top: 158px; width: 3px; height: 38px; }
+    .side-btn-right  { right: -3px; top: 124px; width: 3px; height: 54px; }
+
+    /* Артқы күңгірт титан әйнек пен Pro камера аралы (Flip арқылы ауыстыруға болады) */
+    .iphone-18-front {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 40px;
+      overflow: hidden;
+      background: #050507;
+      box-shadow: inset 0 0 0 3px #000000;
+    }
+
+    /* Түпнұсқа iPhone 18 Pro камера блогі (көрнекі 3D-элемент) */
+    .camera-bump-module {
+      position: relative;
+      width: 96px;
+      height: 102px;
+      border-radius: 26px;
+      background: linear-gradient(145deg, rgba(226, 212, 194, 0.35), rgba(112, 98, 83, 0.55));
+      backdrop-filter: blur(10px);
+      border: 1.5px solid rgba(255, 255, 255, 0.35);
+      box-shadow:
+        0 10px 22px rgba(0, 0, 0, 0.55),
+        inset 0 1px 2px rgba(255, 255, 255, 0.5);
+      padding: 9px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 7px;
+    }
+
+    .pro-lens {
+      position: relative;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #243b6b 0%, #090c14 62%, #000000 100%);
+      border: 3px solid #cbb9a2;
+      box-shadow:
+        0 4px 8px rgba(0, 0, 0, 0.65),
+        inset 0 0 8px rgba(96, 165, 250, 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pro-lens::before {
+      content: "";
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #3b82f6, #0f172a 70%);
+      border: 1px solid rgba(147, 197, 253, 0.4);
+    }
+
+    .pro-lens::after {
+      content: "";
+      position: absolute;
+      top: 6px;
+      left: 8px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.75);
+    }
+
+    .pro-lens-right {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      align-self: center;
+    }
+
+    .glass-glare {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(115deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.04) 38%, transparent 42%);
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    /* Голографиялық банк картасы */
+    .holo-card {
+      background: linear-gradient(135deg, #111827 0%, #1c1917 48%, #090d16 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .holo-shimmer {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        120deg,
+        transparent 20%,
+        rgba(255, 255, 255, 0.08) 35%,
+        rgba(251, 191, 36, 0.18) 50%,
+        rgba(16, 185, 129, 0.14) 65%,
+        transparent 80%
+      );
+      background-size: 200% 200%;
+      animation: shimmerHolo 5s ease infinite;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-glow"></div>
+  <!-- Фондағы сәндік бөлшектер -->
+  <div class="particle" style="width: 6px; height: 6px; top: 18%; left: 16%; animation-delay: 0s;"></div>
+  <div class="particle" style="width: 8px; height: 8px; top: 72%; left: 22%; animation-delay: 2s;"></div>
+  <div class="particle" style="width: 5px; height: 5px; top: 28%; right: 18%; animation-delay: 4s;"></div>
+  <div class="particle" style="width: 7px; height: 7px; bottom: 20%; right: 24%; animation-delay: 1.5s;"></div>
+
+  <!-- 1-ЭКРАН: ҚҰПИЯ АШЫҚ ХАТ -->
+  <div id="cardScreen" class="relative z-10 flex flex-col items-center text-center gap-7 animate-fade-in">
+    <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-xs font-semibold tracking-widest uppercase">
+      <span>Apple Special Event</span>
+      <span>•</span>
+      <span>VIP Сәлемдеме</span>
+    </div>
+
+    <div
+      id="envelope"
+      class="envelope-wrapper"
+      onclick="openCard()"
+      onmousemove="tiltEnvelope(event)"
+      onmouseleave="resetEnvelope()"
+    >
+      <div class="envelope-flap"></div>
+      <div class="seal">💌</div>
+      <span class="absolute bottom-4 text-[11px] uppercase tracking-[0.22em] text-amber-200/75 font-medium">
+        Арнайы сен үшін
+      </span>
+    </div>
+
+    <div class="space-y-2 max-w-sm">
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-b from-white to-slate-300 bg-clip-text text-transparent">
+        Саған құпия сәлемдеме келді! 💌
+      </h1>
+      <p class="text-sm text-slate-400">
+        Ішін ашу үшін хатты бас ✨
+      </p>
+    </div>
+
+    <button
+      onclick="openCard()"
+      class="bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 text-slate-950 font-bold text-base px-8 py-3.5 rounded-full shadow-lg shadow-amber-500/30 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
+    >
+      Хатты ашу
+    </button>
+  </div>
+
+  <!-- 2-ЭКРАН: IPHONE 18 PRO SHOWCASE -->
+  <div
+    id="mainScreen"
+    class="relative z-10 hidden flex-col items-center text-center max-w-lg w-full bg-white/[0.03] border border-white/10 backdrop-blur-2xl rounded-[32px] p-6 sm:p-8 shadow-2xl animate-pop-in"
+  >
+    <span class="inline-block bg-gradient-to-r from-amber-400/20 to-rose-500/20 border border-amber-300/30 text-amber-200 text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-3">
+      ЖАҢА ФЛАГМАН • 2026
+    </span>
+
+    <h2 class="text-3xl sm:text-4xl font-black tracking-tight bg-gradient-to-b from-white via-white to-slate-400 bg-clip-text text-transparent mb-1">
+      iPhone 18 Pro
+    </h2>
+    <p class="text-xs sm:text-sm text-slate-400 mb-3">
+      Desert Titanium • A20 Pro • ProMotion
+    </p>
+
+    <!-- Алдыңғы / Артқы (камера) көріністі ауыстыру батырмасы -->
+    <div class="flex items-center gap-2 mb-4 bg-white/5 border border-white/10 rounded-full p-1 text-xs">
+      <button
+        id="viewBackBtn"
+        onclick="switchPhoneView('back')"
+        class="px-3.5 py-1 rounded-full bg-amber-400 text-slate-950 font-bold transition-all cursor-pointer"
+      >
+        Pro Камерасы
+      </button>
+      <button
+        id="viewFrontBtn"
+        onclick="switchPhoneView('front')"
+        class="px-3.5 py-1 rounded-full text-slate-300 hover:text-white font-semibold transition-all cursor-pointer"
+      >
+        OLED Экраны
+      </button>
+    </div>
+
+    <!-- Интерактивті 3D-рендер: Түпнұсқа iPhone 18 Pro -->
+    <div
+      id="phoneStage"
+      class="phone-3d-stage relative mx-auto mb-6 py-1 flex items-center justify-center"
+      onmousemove="tiltPhone(event)"
+      onmouseleave="resetPhone()"
+      ontouchmove="tiltPhoneTouch(event)"
+      ontouchend="resetPhone()"
+    >
+      <div class="absolute w-64 h-64 rounded-full bg-gradient-to-tr from-amber-400/25 via-rose-500/15 to-sky-400/20 blur-2xl pointer-events-none"></div>
+
+      <div id="phone3dCard" class="phone-3d-card">
+        <div class="iphone-18-chassis">
+          <div class="side-btn-left-1"></div>
+          <div class="side-btn-left-2"></div>
+          <div class="side-btn-left-3"></div>
+          <div class="side-btn-right"></div>
+
+          <!-- АРТҚЫ КӨРІНІС: Түпнұсқа iPhone 18 Pro Desert Titanium + 3 Pro камера -->
+          <div
+            id="phoneBackView"
+            class="relative w-full h-full rounded-[40px] p-4 flex flex-col justify-between overflow-hidden"
+            style="background: linear-gradient(155deg, #cbb8a1 0%, #9b8974 42%, #766654 100%); box-shadow: inset 0 0 18px rgba(255,255,255,0.28);"
+          >
+            <div class="glass-glare"></div>
+
+            <!-- Үштік Pro камера модулі + LiDAR + TrueTone Flash -->
+            <div class="camera-bump-module">
+              <div class="pro-lens"></div>
+              <div class="pro-lens pro-lens-right">
+                <!-- TrueTone жарқылы -->
+                <span class="absolute -top-1.5 right-0.5 w-2.5 h-2.5 rounded-full bg-amber-100 border border-amber-300/60 shadow"></span>
+                <!-- LiDAR сканері -->
+                <span class="absolute -bottom-1.5 right-0.5 w-2.5 h-2.5 rounded-full bg-slate-900 border border-white/30"></span>
+              </div>
+              <div class="pro-lens"></div>
+            </div>
+
+            <!-- Ортасындағы айнадай жылтыр Apple логотипі -->
+            <div class="self-center mb-14 opacity-75 drop-shadow">
+              <svg width="42" height="50" viewBox="0 0 170 170" fill="#f5ede3">
+                <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.13-1.9-14.34-6.08-3.69-3.03-7.61-7.82-11.77-14.37-5.06-7.87-9.23-16.92-12.51-27.14-3.28-10.22-4.92-19.86-4.92-28.91 0-10.74 2.71-19.64 8.13-26.69 5.42-7.05 12.23-10.67 20.43-10.86 4.02 0 8.85 1.24 14.51 3.71 5.65 2.47 9.29 3.74 10.92 3.81 1.23 0 5.31-1.48 12.24-4.44 6.93-2.96 12.78-4.21 17.56-3.76 13.09 1.05 22.92 6.18 29.51 15.39-11.71 7.1-17.46 16.94-17.24 29.52.22 9.85 3.89 18.04 11.01 24.57 4.92 4.58 10.75 7.45 17.49 8.61-1.41 4.35-2.99 8.53-4.74 12.53zM119.22 31.9c0 7.77-2.84 15.03-8.52 21.77-6.85 8.01-15.14 12.63-24.13 11.9-.12-.95-.19-1.95-.19-3.01 0-7.46 3.25-15.44 9.01-21.97 2.88-3.31 6.55-6.06 11.01-8.26 4.46-2.2 8.68-3.41 12.66-3.64.11 1.11.16 2.18.16 3.21z"/>
+              </svg>
+            </div>
+
+            <div class="text-center text-[10px] font-bold tracking-[0.2em] text-amber-950/70 uppercase">
+              iPhone 18 Pro • Titanium
+            </div>
+          </div>
+
+          <!-- АЛДЫҢҒЫ КӨРІНІС: OLED экран + Dynamic Island -->
+          <div id="phoneFrontView" class="iphone-18-front hidden">
+            <div class="glass-glare"></div>
+
+            <!-- Dynamic Island -->
+            <div class="absolute top-3 left-1/2 -translate-x-1/2 w-20 h-5 bg-black rounded-full z-30 flex items-center justify-end px-2 border border-white/10">
+              <div class="w-2.5 h-2.5 rounded-full bg-indigo-950 border border-indigo-400/40"></div>
+            </div>
+
+            <!-- iOS 20 фирменді тірі тұсқағазы -->
+            <div class="w-full h-full flex flex-col justify-between p-4 bg-gradient-to-b from-[#1e1530] via-[#431d44] to-[#0c0a14] text-white">
+              <div class="mt-7 text-center">
+                <div class="text-[10px] uppercase tracking-widest text-amber-200/85 font-semibold">Сенбі, 21 қараша</div>
+                <div class="text-4xl font-extrabold tracking-tight text-white/95 mt-0.5">09:41</div>
+              </div>
+
+              <div class="relative mx-auto w-32 h-32 rounded-full bg-gradient-to-tr from-amber-400 via-rose-500 to-indigo-500 blur-md opacity-90"></div>
+
+              <div class="mb-1 text-center">
+                <span class="inline-block px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-md border border-white/15 text-[10px] font-semibold text-amber-200">
+                  Super Retina XDR • 120 Гц ✨
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ортасындағы басты сұрақ -->
+    <div class="text-xl sm:text-2xl font-extrabold text-white mb-6 leading-snug tracking-tight">
+      Маған iPhone 18 Pro алып бересің бе?
+    </div>
+
+    <!-- Батырмалар: сол жақта Жасыл "Иә", оң жақта Қызыл "Жоқ" -->
+    <div class="flex flex-wrap items-center justify-center gap-4 w-full min-h-[84px]">
+      <button
+        id="yesBtn"
+        onclick="acceptGift()"
+        style="font-size: 16px; padding: 14px 22px;"
+        class="bg-gradient-to-br from-emerald-400 via-green-500 to-emerald-600 text-white font-extrabold rounded-2xl shadow-lg shadow-emerald-500/40 hover:brightness-110 transition-all duration-300 cursor-pointer leading-tight"
+      >
+        Иә, әрине алып беремін! 💚
+      </button>
+
+      <button
+        id="noBtn"
+        onclick="rejectGift()"
+        class="bg-gradient-to-br from-rose-500 to-red-600 text-white font-semibold text-sm sm:text-base px-5 py-3.5 rounded-2xl shadow-lg shadow-red-500/35 hover:brightness-110 transition-all duration-200 cursor-pointer leading-tight max-w-[250px]"
+      >
+        Жоқ, саған не үшін?
+      </button>
+    </div>
+  </div>
+
+  <!-- 3-ЭКРАН: МЕРЕКЕЛІК ФИНАЛ ЖӘНЕ КАРТА -->
+  <div
+    id="successScreen"
+    class="relative z-10 hidden flex-col items-center text-center max-w-md w-full bg-white/[0.04] border border-white/15 backdrop-blur-2xl rounded-[32px] p-7 sm:p-9 shadow-2xl animate-pop-in"
+  >
+    <div class="text-5xl mb-3">🥳💖📱</div>
+    <h3 class="text-2xl sm:text-3xl font-black bg-gradient-to-r from-emerald-300 via-green-400 to-teal-300 bg-clip-text text-transparent mb-2">
+      Рақмет, міне менің картам! 🥳💖
+    </h3>
+    <p class="text-xs sm:text-sm text-slate-400 mb-6">
+      Сенің жүрегің алтын екенін білгенмін! ✨
+    </p>
+
+    <!-- Қара-алтын голографиялық банк картасы -->
+    <div class="holo-card w-full max-w-[350px] border border-amber-300/30 rounded-2xl p-6 text-left shadow-2xl mb-6">
+      <div class="holo-shimmer"></div>
+
+      <div class="relative z-10 flex justify-between items-center mb-6">
+        <div class="flex items-center gap-2.5">
+          <div class="w-11 h-8 rounded-lg bg-gradient-to-br from-amber-200 via-yellow-400 to-amber-600 border border-amber-100/50 shadow-inner"></div>
+          <svg class="w-5 h-5 text-white/60" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.5 14.5A3.5 3.5 0 0 1 8.5 9.5M12 17a7 7 0 0 1 0-10M15.5 19.5a10.5 10.5 0 0 1 0-15" />
+          </svg>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-extrabold text-amber-300 tracking-wider">GOLD • VIP</span>
+          <div class="w-6 h-6 rounded-full bg-gradient-to-tr from-amber-300 via-rose-400 to-emerald-300 opacity-90 border border-white/40"></div>
+        </div>
+      </div>
+
+      <!-- Кездейсоқ 16 таңбалы карта нөмірі -->
+      <div
+        id="randomCardNumber"
+        class="relative z-10 font-mono text-lg sm:text-xl font-bold tracking-widest text-white mb-5 select-all drop-shadow"
+      >
+        4400 0000 0000 0000
+      </div>
+
+      <div class="relative z-10 flex justify-between items-end text-[11px] text-slate-300/85 font-semibold tracking-wider">
+        <div>
+          <div class="text-[9px] text-slate-400 uppercase">Арнайы қор</div>
+          <div class="text-amber-200">iPHONE 18 PRO ҚОРЫ</div>
+        </div>
+        <div class="text-right">
+          <div class="text-[9px] text-slate-400 uppercase">Мерзімі</div>
+          <div>09/30</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Көшіру батырмасы -->
+    <button
+      id="copyBtn"
+      onclick="copyCard()"
+      class="bg-white text-slate-950 font-bold text-sm px-6 py-3.5 rounded-2xl hover:bg-slate-200 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer shadow-lg"
+    >
+      Карта нөмірін көшіру 📋
+    </button>
+  </div>
+
+  <script>
+    // Қызыл батырманы басқан сайын өзгеретін әзіл-өтініш сөздер
+    const noPhrases = [
+      "Жоқ, саған не үшін?",
+      "Өтінемін, маған қатты керек 🥺",
+      "Ойланып көрші, камерасы от қой 📸",
+      "Сен ең жомарт адамсың ғой ✨",
+      "Қызылды баспа, жасыл әдемірек 😅",
+      "Кнопка кішірейіп барады, берілші 😂",
+      "Болды, басқа амал қалмады 🙈"
+    ];
+
+    let noClickCount = 0;
+    let yesFontSize = 16;
+    let yesPadY = 14;
+    let yesPadX = 22;
+    let noScale = 1;
+
+    // Конвертті 3D бұру
+    function tiltEnvelope(e) {
+      const env = document.getElementById("envelope");
+      const rect = env.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width - 0.5;
+      const y = (e.clientY - rect.top) / rect.height - 0.5;
+      env.style.transform = `rotateY(${x * 18}deg) rotateX(${-y * 18}deg) scale(1.03)`;
+    }
+
+    function resetEnvelope() {
+      const env = document.getElementById("envelope");
+      env.style.transform = "rotateY(0deg) rotateX(0deg) scale(1)";
+    }
+
+    // Смартфонды 3D айналдыру
+    function tiltPhone(e) {
+      const stage = document.getElementById("phoneStage");
+      const card = document.getElementById("phone3dCard");
+      const rect = stage.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width - 0.5;
+      const y = (e.clientY - rect.top) / rect.height - 0.5;
+      card.style.animation = "none";
+      card.style.transform = `rotateY(${x * 28}deg) rotateX(${-y * 22}deg) scale(1.03)`;
+    }
+
+    function tiltPhoneTouch(e) {
+      if (!e.touches || !e.touches[0]) return;
+      const touch = e.touches[0];
+      tiltPhone({ clientX: touch.clientX, clientY: touch.clientY });
+    }
+
+    function resetPhone() {
+      const card = document.getElementById("phone3dCard");
+      card.style.transform = "rotateY(0deg) rotateX(0deg) scale(1)";
+      card.style.animation = "floatPhone 4.5s ease-in-out infinite";
+    }
+
+    // Pro камерасы мен OLED экранын ауыстыру
+    function switchPhoneView(side) {
+      const backView = document.getElementById("phoneBackView");
+      const frontView = document.getElementById("phoneFrontView");
+      const backBtn = document.getElementById("viewBackBtn");
+      const frontBtn = document.getElementById("viewFrontBtn");
+
+      if (side === "back") {
+        backView.classList.remove("hidden");
+        frontView.classList.add("hidden");
+        backBtn.className = "px-3.5 py-1 rounded-full bg-amber-400 text-slate-950 font-bold transition-all cursor-pointer";
+        frontBtn.className = "px-3.5 py-1 rounded-full text-slate-300 hover:text-white font-semibold transition-all cursor-pointer";
+      } else {
+        backView.classList.add("hidden");
+        frontView.classList.remove("hidden");
+        frontBtn.className = "px-3.5 py-1 rounded-full bg-amber-400 text-slate-950 font-bold transition-all cursor-pointer";
+        backBtn.className = "px-3.5 py-1 rounded-full text-slate-300 hover:text-white font-semibold transition-all cursor-pointer";
+      }
+    }
+
+    // Хатты ашу
+    function openCard() {
+      const envelope = document.getElementById("envelope");
+      envelope.classList.add("open");
+
+      setTimeout(() => {
+        document.getElementById("cardScreen").style.display = "none";
+        document.getElementById("mainScreen").style.display = "flex";
+      }, 500);
+    }
+
+    // Қызыл батырманы басқанда
+    function rejectGift() {
+      noClickCount++;
+
+      const yesBtn = document.getElementById("yesBtn");
+      const noBtn = document.getElementById("noBtn");
+
+      // Жасыл батырма үлкейіп, жарқырай түседі
+      yesFontSize += 5;
+      yesPadY += 4;
+      yesPadX += 8;
+      yesBtn.style.fontSize = yesFontSize + "px";
+      yesBtn.style.padding = `${yesPadY}px ${yesPadX}px`;
+      yesBtn.style.boxShadow = `0 0 ${20 + noClickCount * 8}px rgba(16, 185, 129, 0.78)`;
+
+      // Қызыл батырма кішірейіп, дірілдеп мәтінін өзгертеді
+      noScale = Math.max(0.32, noScale - 0.11);
+      noBtn.style.setProperty("--no-scale", noScale);
+      noBtn.style.transform = `scale(${noScale})`;
+      noBtn.style.opacity = Math.max(0.45, 1 - noClickCount * 0.07);
+
+      noBtn.classList.remove("animate-shake");
+      void noBtn.offsetWidth;
+      noBtn.classList.add("animate-shake");
+
+      const phraseIndex = Math.min(noClickCount, noPhrases.length - 1);
+      noBtn.textContent = noPhrases[phraseIndex];
+    }
+
+    // Кездейсоқ 16 таңбалы карта нөмірін жасау
+    function generateRandomCard() {
+      const prefixes = ["4400", "5169", "4276", "2200"];
+      const firstBlock = prefixes[Math.floor(Math.random() * prefixes.length)];
+      const blocks = [firstBlock];
+
+      for (let i = 0; i < 3; i++) {
+        const randomBlock = Math.floor(1000 + Math.random() * 9000).toString();
+        blocks.push(randomBlock);
+      }
+      return blocks.join(" ");
+    }
+
+    // Конфетти салютін ату
+    function fireConfetti() {
+      if (typeof confetti !== "function") return;
+      confetti({
+        particleCount: 95,
+        spread: 75,
+        origin: { y: 0.6 }
+      });
+      setTimeout(() => {
+        confetti({
+          particleCount: 60,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 }
+        });
+        confetti({
+          particleCount: 60,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 }
+        });
+      }, 240);
+    }
+
+    // Жасыл батырманы басқанда
+    function acceptGift() {
+      document.getElementById("mainScreen").style.display = "none";
+      const successScreen = document.getElementById("successScreen");
+      successScreen.style.display = "flex";
+
+      document.getElementById("randomCardNumber").textContent = generateRandomCard();
+      fireConfetti();
+    }
+
+    // Карта нөмірін буферге көшіру
+    function copyCard() {
+      const cardText = document.getElementById("randomCardNumber").textContent;
+      const copyBtn = document.getElementById("copyBtn");
+
+      const tempInput = document.createElement("textarea");
+      tempInput.value = cardText;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      try {
+        document.execCommand("copy");
+        copyBtn.textContent = "Көшірілді! ✅";
+      } catch (err) {
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(cardText);
+          copyBtn.textContent = "Көшірілді! ✅";
+        }
+      }
+      document.body.removeChild(tempInput);
+
+      setTimeout(() => {
+        copyBtn.textContent = "Карта нөмірін көшіру 📋";
+      }, 2000);
+    }
+  </script>
+</body>
+</html>
